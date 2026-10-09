@@ -1,0 +1,226 @@
+Credit Card Fraud / Outlier Detection
+=====================================
+
+PROGRAM: 
+Import the required libraries 
+import numpy as np  
+import pandas as pd  
+import sklearn  
+import scipy  
+import matplotlib.pyplot as plt  
+import seaborn as sns  
+from sklearn.metrics import classification_report,accuracy_score  
+from sklearn.ensemble import IsolationForest  
+from sklearn.neighbors import LocalOutlierFactor  
+from sklearn.svm import OneClassSVM  
+from pylab import rcParams  
+rcParams['figure.figsize'] = 14, 8  
+RANDOM_SEED = 42  
+LABELS = ["Normal", "Fraud"] 
+ 
+Load the heart dataset 
+data = pd.read_csv('C:\\User\\creditcard.csv',sep=',')  
+data.head() 
+OUTPUT: 
+ 
+ 
+Explore the dataset 
+data.info() 
+OUTPUT: 
+<class 'pandas.DataFrame'> 
+RangeIndex: 284807 entries, 0 to 284806 
+Data columns (total 31 columns): 
+ #   Column  Non-Null Count   Dtype   
+---  ------  --------------   -----   
+ 0   Time    284807 non-null  float64 
+ 1   V1      284807 non-null  float64 
+ 2   V2      284807 non-null  float64 
+ 3   V3      284807 non-null  float64 
+ 4   V4      284807 non-null  float64 
+ 5   V5      284807 non-null  float64 
+ 6   V6      284807 non-null  float64 
+ 7   V7      284807 non-null  float64 
+ 8   V8      284807 non-null  float64 
+ 9   V9      284807 non-null  float64 
+ 10  V10     284807 non-null  float64 
+ 11  V11     284807 non-null  float64 
+ 12  V12     284807 non-null  float64 
+
+
+ 13  V13     284807 non-null  float64 
+ 14  V14     284807 non-null  float64 
+ 15  V15     284807 non-null  float64 
+ 16  V16     284807 non-null  float64 
+ 17  V17     284807 non-null  float64 
+ 18  V18     284807 non-null  float64 
+ 19  V19     284807 non-null  float64 
+ 20  V20     284807 non-null  float64 
+ 21  V21     284807 non-null  float64 
+ 22  V22     284807 non-null  float64 
+ 23  V23     284807 non-null  float64 
+ 24  V24     284807 non-null  float64 
+ 25  V25     284807 non-null  float64 
+ 26  V26     284807 non-null  float64 
+ 27  V27     284807 non-null  float64 
+ 28  V28     284807 non-null  float64 
+ 29  Amount  284807 non-null  float64 
+ 30  Class   284807 non-null  int64   
+dtypes: float64(30), int64(1) 
+memory usage: 67.4 MB 
+ 
+data.isnull().values.any() 
+OUTPUT: 
+np.False_ 
+ 
+count_classes = data['Class'].value_counts(sort=True) 
+count_classes.plot(kind = 'bar', rot=0)  
+plt.title("Transaction Class Distribution")  
+plt.xticks(range(2), LABELS)  
+plt.xlabel("Class")  
+plt.ylabel("Frequency")  
+plt.show() 
+OUTPUT: 
+ 
+
+
+fraud = data[data['Class']==1]  
+normal = data[data['Class']==0]  
+print(fraud.shape,normal.shape) 
+OUTPUT: 
+(492, 31) (284315, 31) 
+ 
+fraud.Amount.describe() 
+OUTPUT: 
+ 
+ 
+normal.Amount.describe() 
+OUTPUT: 
+ 
+ 
+f, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6), sharex=True)  
+f.suptitle('Amount per transaction by class', fontsize=14)  
+bins = 50  
+ax1.hist(fraud.Amount, bins=bins, color='darkred', alpha=0.7)  
+ax1.set_title('Fraud')  
+ax1.set_ylabel('Number of Transactions') 
+ax1.set_yscale('log')  
+ax2.hist(normal.Amount, bins=bins, color='navy', alpha=0.7)  
+ax2.set_title('Normal')  
+ax2.set_ylabel('Number of Transactions')  
+ax2.set_yscale('log') 
+plt.xlabel('Amount ($)')  
+plt.xlim((0, 20000)) 
+plt.tight_layout() 
+plt.show() 
+ 
+ 
+ 
+ 
+ 
+
+
+OUTPUT: 
+ 
+ 
+f, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5), sharex=True) 
+f.suptitle('Time of transaction vs Amount by class', fontsize=14) 
+ax1.scatter(fraud.Time, fraud.Amount, color='darkred', alpha=0.5) 
+ax1.set_title('Fraud') 
+ax1.set_xlabel('Time (in Seconds)') 
+ax1.set_ylabel('Amount') 
+ax2.scatter(normal.Time, normal.Amount, color='navy', alpha=0.5) 
+ax2.set_title('Normal') 
+ax2.set_xlabel('Time (in Seconds)') 
+ax2.set_ylabel('Amount') 
+plt.tight_layout() 
+plt.show() 
+OUTPUT: 
+ 
+ 
+data1= data.sample(frac = 0.1,random_state=1) 
+data1.shape 
+ 
+
+
+OUTPUT: 
+(28481, 31) 
+ 
+data.shape 
+OUTPUT: 
+(284807, 31) 
+ 
+Fraud = data1[data1['Class']==1]  
+Valid = data1[data1['Class']==0]  
+outlier_fraction = len(Fraud)/float(len(Valid))  
+print(outlier_fraction)  
+print("Fraud Cases : {}".format(len(Fraud)))  
+print("Valid Cases : {}".format(len(Valid))) 
+OUTPUT: 
+0.0017234102419808666 
+Fraud Cases : 49 
+Valid Cases : 28432 
+ 
+Perform Isolation Forest Algorithm and Local Outlier Factor(LOF) Algorithm to 
+dataset. 
+import seaborn as sns  
+corrmat = data1.corr()  
+top_corr_features = corrmat.index  
+plt.figure(figsize=(20,20))   
+g=sns.heatmap(data[top_corr_features].corr(),annot=True,cmap="RdYlGn") 
+OUTPUT: 
+ 
+
+
+Create independent and Dependent Features 
+columns = data1.columns.tolist()  
+columns = [c for c in columns if c not in ["Class"]] 
+ 
+Define a random state 
+target = "Class"  
+state = np.random.RandomState(42)  
+X = data1[columns]  
+Y = data1[target]  
+X_outliers = state.uniform(low=0, high=1,size=(X.shape[0],X.shape[1]))  
+print(X.shape)  
+print(Y.shape) 
+OUTPUT: 
+(28481, 30) 
+(28481,) 
+ 
+Define the outlier detection methods 
+classifiers = {"Isolation Forest":IsolationForest(n_estimators=100,max_samples=len(X),  
+contamination=outlier_fraction,random_state=state, verbose=0),  
+"Local Outlier Factor":LocalOutlierFactor(n_neighbors=20, algorithm='auto',  
+leaf_size=30,metric='minkowski',p=2, metric_params=None, contamination=outlier_fraction)  
+} 
+ 
+Check the type of classifier 
+type(classifiers) 
+OUTPUT: 
+dict 
+ 
+Fit the data and tag outliers 
+n_outliers = len(Fraud) 
+for i, (clf_name, clf) in enumerate(classifiers.items()): 
+    if clf_name == "Local Outlier Factor": 
+        y_pred = clf.fit_predict(X) 
+        scores_prediction = clf.negative_outlier_factor_ 
+    else: 
+        clf.fit(X) 
+        scores_prediction = clf.decision_function(X) 
+        y_pred = clf.predict(X) 
+    y_pred[y_pred == 1] = 0  
+    y_pred[y_pred == -1] = 1  
+    n_errors = (y_pred != Y).sum() 
+    print(f"{clf_name} - Outlier Errors: {n_errors}") 
+    print("Accuracy Score :",accuracy_score(Y,y_pred))  
+    print("Classification Report :")  
+    print(classification_report(Y,y_pred)) 
+ 
+ 
+ 
+ 
+ 
+
+
+OUTPUT:
