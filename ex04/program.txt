@@ -1,0 +1,110 @@
+Amazon SageMaker Iris Model Tutorial
+Source: ML_LAB Printout.pdf
+
+==================== PDF PAGE 14 ====================
+PROGRAM: 
+Create an Amazon SageMaker notebook instance for data preparation  
+In this step, you create the notebook instance that you use to download and process your data. 
+As part of the creation process, you also create an Identity and Access Management (IAM) 
+role that allows Amazon SageMaker to access data in Amazon S3.  
+ 
+a. Sign in to the Amazon SageMaker console, and in the top right corner, select your 
+preferredAWS Region. This tutorial uses the US West (Oregon) Region. 
+ 
+b.  In the left navigation pane, choose Notebook instances, then choose Create      
+notebookinstance. 
+ 
+c. following fields:  
+• For Notebook instance name, type SageMaker-Tutorial. 
+• For Notebook instance type, choose ml.t2.medium.  
+• For Elastic inference, keep the default selection of none. 
+ 
+ 
+
+==================== PDF PAGE 15 ====================
+d. In the Permissions and encryption section, for IAM role, choose Create a new role, 
+and inthe Create an IAM role dialog box, select Any S3 bucket and choose Create 
+role.  
+Note: If you already have a bucket that you’d like to use instead, choose Specific 
+S3buckets and specify the bucket name. 
+ 
+ 
+Amazon SageMaker creates the AmazonSageMaker-ExecutionRole-*** role. 
+ 
+e. Keep the default settings for the remaining options and choose Create notebook 
+instance.  
+In the Notebook instances section, the new SageMaker-Tutorial notebook instance is 
+displayedwith a Status of Pending. The notebook is ready when the Status changes to 
+InService. 
+ 
+ 
+
+==================== PDF PAGE 16 ====================
+Prepare the data 
+In this step, you use your Amazon SageMaker notebook instance to preprocess the 
+data that youneed to train your machine learning model and then upload the data to 
+Amazon S3.  
+ 
+a. After your SageMaker-Tutorial notebook instance status changes to InService, 
+choose OpenJupyter. 
+ 
+b. In Jupyter, choose New and then choose conda_python3. 
+ 
+c. In a new code cell on your Jupyter notebook, copy and paste the following code 
+and choose Run. 
+ 
+ 
+Install the SageMaker  
+pip install -q sagemaker boto3  
+
+==================== PDF PAGE 17 ====================
+Import the Functions  
+import sagemaker  
+import boto3  
+import pandas as pd  
+import numpy as np  
+print("Libraries imported successfully")  
+Output:  
+Libraries imported successfully  
+Load the Dataset  
+from sklearn.datasets import load_iris  
+iris = load_iris()  
+df = pd.DataFrame(iris.data, columns=iris.feature_names)  
+df["target"] = iris.target  
+df.head()  
+Model Training and Testing  
+from sklearn.model_selection import train_test_split  
+from sklearn.ensemble import RandomForestClassifier  
+from sklearn.metrics import accuracy_score  
+X = df.iloc[:, :-1]  
+y = df["target"]  
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, 
+random_state=42 )  
+model = RandomForestClassifier()  
+model.fit(X_train, y_train)  
+pred = model.predict(X_test)  
+print("Accuracy:", accuracy_score(y_test, pred))  
+Output:  
+Accuracy: 1.0 
+ 
+Clean up  
+In this step, you terminate the resources you used in this lab.  
+Important: Terminating resources that are not actively being used reduces costs and is a best 
+practice. Not terminating your resources will result in charges to your account.  
+ 
+a. Delete your endpoint: In your Jupyter notebook, copy and paste the following code 
+andchoose Run.  
+xgb_predictor.delete_endpoint(delete_endpoint_config=True) 
+ 
+b. Delete your training artifacts and S3 bucket: In your Jupyter notebook, copy and paste 
+the following code and choose Run.  
+bucket_to_delete = boto3.resource('s3').Bucket(bucket_name) 
+bucket_to_delete.objects.all().delete()  
+ 
+c. Delete your SageMaker Notebook: Stop and delete your SageMaker Notebook.  
+1. Open the SageMaker console.  
+2. Under Notebooks, choose Notebook instances.  
+3. Choose the notebook instance that you created for this tutorial, then choose    
+Actions, Stop. The notebook instance takes up to several minutes to stop. When Status 
+changes to Stopped, move onto the next step.  
+4. Choose Actions, then Delete. 5. Choose Delete. 
