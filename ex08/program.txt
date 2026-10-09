@@ -1,0 +1,91 @@
+Heart Disease Bayesian Network
+==============================
+
+PROGRAM: 
+Import the required libraries 
+import pandas as pd  
+import numpy as np  
+import matplotlib.pyplot as plt  
+import seaborn as sns 
+ 
+Load the heart dataset 
+df=pd.read_csv('C:\\Users\\acer\\Downloads\\heart.csv') 
+df.head() 
+OUTPUT: 
+ 
+ 
+Explore the dataset 
+df.shape 
+OUTPUT: 
+(1025, 14) 
+ 
+df.isnull().sum() 
+OUTPUT: 
+ 
+ 
+df.drop(['oldpeak','slope','ca','thal'],axis=1,inplace=True)  
+df.head() 
+ 
+ 
+ 
+ 
+ 
+
+
+OUTPUT: 
+ 
+ 
+df.info() 
+OUTPUT: 
+ 
+ 
+df.describe() 
+OUTPUT: 
+ 
+ 
+Install pgmpy 
+%pip install pgmpy 
+ 
+ 
+ 
+ 
+ 
+
+
+OUTPUT: 
+ 
+ 
+Build the Model 
+from pgmpy.models import DiscreteBayesianNetwork 
+from pgmpy.estimators import BayesianEstimator 
+df.columns 
+OUTPUT: 
+ 
+ 
+model = DiscreteBayesianNetwork([ 
+    ('age', 'target'),  
+    ('sex', 'target'),  
+    ('exang', 'target'),  
+    ('cp', 'target'),  
+    ('target', 'restecg'),  
+    ('target', 'chol') 
+]) 
+estimator = BayesianEstimator(model=model, data=df) 
+cpds = estimator.get_parameters(prior_type="BDeu", equivalent_sample_size=10) 
+model.add_cpds(*cpds) 
+print(model.get_cpds('age')) 
+OUTPUT: 
+ 
+ 
+print(model.get_cpds('sex')) 
+OUTPUT: 
+ 
+ 
+
+
+print(model.get_cpds('exang')) 
+OUTPUT: 
+ 
+ 
+print(model.get_cpds('chol')) 
+OUTPUT:
