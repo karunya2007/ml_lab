@@ -1,0 +1,110 @@
+Spam/Ham Classification using SVM
+Source: ML_LAB Printout.pdf
+
+==================== PDF PAGE 6 ====================
+PROGRAM: 
+Import required libraries  
+import numpy as np  
+import pandas as pd  
+import matplotlib.pyplot as plt  
+import seaborn as sns  
+from sklearn.feature_extraction.text import CountVectorizer  
+from sklearn.model_selection import train_test_split  
+from sklearn.svm import SVC 
+ 
+Load the spam dataset 
+dataset = pd.read_csv("C:\\User\\spam.csv", encoding='latin-1') 
+ 
+Explore the dataset  
+dataset.info() 
+OUTPUT: 
+ 
+ 
+Change column names 
+if 'v1' in dataset.columns and 'v2' in dataset.columns: 
+    dataset = dataset.rename(columns={'v1': 'Category', 'v2': 'Message'}) 
+dataset.head() 
+OUTPUT: 
+ 
+ 
+ 
+
+==================== PDF PAGE 7 ====================
+Splitting our data into X and y 
+X = dataset['Category'].values  
+y = dataset['Message'].values  
+plt.figure(figsize=(6,4))  
+sns.countplot(x='Category', data=dataset)  
+plt.title("Spam and Ham Count")  
+plt.xlabel("Category")  
+plt.ylabel("Count")  
+plt.savefig("exercise3a.png")  
+plt.show() 
+OUTPUT: 
+ 
+Splitting our data into training and testing. 
+X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.2, random_state=0) 
+ 
+Converting text into integer using CountVectorizer() 
+cv = CountVectorizer()  
+X_train = cv.fit_transform(X_train)  
+X_test = cv.transform(X_test) 
+ 
+Applying SVM algorithm 
+classifier = SVC(kernel = 'rbf', random_state = 0)  
+classifier.fit(X_train, y_train) 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+==================== PDF PAGE 8 ====================
+OUTPUT: 
+ 
+ 
+ 
+Check Accuracy 
+print(classifier.score(X_test,y_test)) 
+ 
+OUTPUT: 
+ 
+0.003587443946188341 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
