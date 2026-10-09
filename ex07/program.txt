@@ -1,0 +1,200 @@
+Restaurant Review Sentiment Analysis
+====================================
+
+PROGRAM: 
+Install Packages 
+%pip install nltk 
+OUTPUT: 
+ 
+ 
+Import the required libraries  
+import numpy as np  
+import pandas as pd 
+import nltk  
+import re  
+nltk.download('stopwords')  
+from nltk.corpus import stopwords  
+from nltk.stem.porter import PorterStemmer 
+OUTPUT: 
+ 
+ 
+Load Restaurant Reviews dataset 
+df=pd.read_csv('C:\\Users\\Restaurant_Reviews.tsv',delimiter='\t', quoting=3)  
+df.head() 
+OUTPUT: 
+ 
+ 
+Explore the dataset 
+df.shape 
+OUTPUT: 
+(1000, 2) 
+ 
+Data Preprocessing 
+corpus = []  
+for i in range(0,1000):  
+    # Cleaning special character from the reviews   
+    review = re.sub(pattern='[^a-zA-Z]',repl=' ', string=df['Review'][i])  
+    # Converting the entire review into lower case  
+    review = review.lower()  
+    # Tokenizing the review by words  
+    review_words = review.split()  
+    # Removing the stop words  
+
+
+    review_words = [word for word in review_words if not word in 
+set(stopwords.words('english'))]  
+    # Stemming the words  
+    ps = PorterStemmer()  
+    review = [ps.stem(word) for word in review_words]  
+    # Joining the stemmed words  
+    review = ' '.join(review)  
+    # Creating a corpus  
+    corpus.append(review)  
+print(corpus[0:10]) 
+OUTPUT: 
+ 
+ 
+Build the Model 
+from sklearn.feature_extraction.text import CountVectorizer 
+cv = CountVectorizer(max_features=1500)  
+X = cv.fit_transform(corpus).toarray() 
+y = df.iloc[:, 1].values 
+ 
+Train the Model 
+from sklearn.model_selection import train_test_split  
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size =0.20, random_state = 0)  
+from sklearn.ensemble import RandomForestClassifier  
+model = RandomForestClassifier(n_estimators=35)  
+model.fit(X_train, y_train)  
+RandomForestClassifier(n_estimators=35)  
+model.score(X_test, y_test) 
+OUTPUT: 
+0.7 
+ 
+Running Predictions 
+y_pred = model.predict(X_test) # Accuracy, Precision and Recall  
+from sklearn.metrics import accuracy_score  
+from sklearn.metrics import precision_score  
+from sklearn.metrics import recall_score  
+score1 = accuracy_score(y_test,y_pred)  
+score2 = precision_score(y_test,y_pred)  
+score3= recall_score(y_test,y_pred)  
+print("---- Scores ---- ")  
+print("Accuracy score is: {}%".format(round(score1*100,2)))  
+print("Precision score is: {}".format(round(score2,2)))  
+print("Recall score is: {}".format(round(score3,2))) 
+ 
+ 
+ 
+ 
+ 
+
+
+OUTPUT: 
+ 
+ 
+Making the Confusion Matrix 
+from sklearn.metrics import confusion_matrix  
+cm = confusion_matrix(y_test, y_pred) 
+import matplotlib.pyplot as plt  
+import seaborn as sns  
+%matplotlib inline  
+plt.figure(figsize = (5,5))  
+sns.heatmap(cm, annot=True, cmap="YlGnBu", xticklabels=['Negative','Positive'], 
+yticklabels=['Negative', 'Positive'])  
+plt.xlabel('Predicted values')  
+plt.ylabel('Actual values') 
+OUTPUT: 
+ 
+ 
+Hyperparameter tuning the Naive Bayes Classifier 
+best_accuracy = 0.0  
+n_estimators = 5  
+for i in np.arange(1,30,2):  
+    temp_classifier = RandomForestClassifier(n_estimators=i)  
+    temp_classifier.fit(X_train, y_train)  
+    temp_y_pred = temp_classifier.predict(X_test)  
+
+
+    score = accuracy_score(y_test, temp_y_pred)  
+    print("Accuracy score for n_estimators={} is: 
+{}%".format(round(i,1),round(score*100,2))) 
+    if score>best_accuracy:  
+        best_accuracy = score  
+        n_estimators_val = i  
+    print(' ')  
+print('The best accuracy is {}% with n_estimators value as 
+{}'.format(round(best_accuracy*100,2), round(n_estimators_val,1))) 
+OUTPUT: 
+Accuracy score for n_estimators=1 is: 63.5% 
+Accuracy score for n_estimators=3 is: 62.5% 
+Accuracy score for n_estimators=5 is: 69.5% 
+Accuracy score for n_estimators=7 is: 68.5% 
+Accuracy score for n_estimators=9 is: 69.5% 
+Accuracy score for n_estimators=11 is: 70.5% 
+Accuracy score for n_estimators=13 is: 66.5% 
+Accuracy score for n_estimators=15 is: 70.5% 
+Accuracy score for n_estimators=17 is: 71.5% 
+Accuracy score for n_estimators=19 is: 68.5% 
+Accuracy score for n_estimators=21 is: 70.5% 
+Accuracy score for n_estimators=23 is: 71.5% 
+Accuracy score for n_estimators=25 is: 71.5% 
+Accuracy score for n_estimators=27 is: 68.5% 
+Accuracy score for n_estimators=29 is: 69.5% 
+The best accuracy is 71.5% with n_estimators value as 17 
+ 
+Train Optimized Model 
+model = RandomForestClassifier(n_estimators=n_estimators_val)  
+model.fit(X_train, y_train)  
+RandomForestClassifier(n_estimators=19) 
+OUTPUT: 
+ 
+ 
+Sentiment Prediction Function  
+def predict_sentiment(sample_review):  
+    sample_review = re.sub(pattern='[^a-zA-Z]',repl=' ', string =sample_review)  
+    sample_review = sample_review.lower()  
+    sample_review_words = sample_review.split()  
+    sample_review_words = [word for word in sample_review_words if not word in 
+set(stopwords.words('english'))]  
+    ps = PorterStemmer()  
+    final_review = [ps.stem(word) for word in sample_review_words] 
+    final_review = ' '.join(final_review)  
+    temp = cv.transform([final_review]).toarray() 
+    return model.predict(temp) 
+
+
+Predicting Values 
+sample_review = 'The food is really good here.' 
+print("Review:", sample_review) 
+if predict_sentiment(sample_review):  
+    print('This is a POSITIVE review.')  
+else:  
+    print('This is a NEGATIVE review!') 
+ 
+OUTPUT: 
+Review: The food is really good here.  
+This is a POSITIVE review. 
+ 
+sample_review = 'Food was pretty bad and the service was very slow.'  
+print("Review:", sample_review) 
+if predict_sentiment(sample_review):  
+    print('This is a POSITIVE review.')  
+else:  
+    print('This is a NEGATIVE review!') 
+ 
+OUTPUT: 
+Review: Food was pretty bad and the service was very slow. 
+This is a NEGATIVE review! 
+ 
+  
+sample_review = 'The food was absolutely wonderful and nicely presentation' 
+print("Review:", sample_review) 
+if predict_sentiment(sample_review):  
+    print('This is a POSITIVE review.')  
+else:  
+    print('This is a NEGATIVE review!') 
+ 
+OUTPUT: 
+Review: The food was absolutely wonderful and nicely presentation 
+This is a POSITIVE review.
